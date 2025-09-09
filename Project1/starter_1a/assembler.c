@@ -78,6 +78,12 @@ int main(int argc, char **argv) {
 
     // check if there is a label. If so, take down its name and address
     if (label[0] != '\0') {
+      for (int labelCheck = 0; labelCheck < labelCount; labelCheck++) {
+        if (!strcmp(label, labelList[labelCheck].label)) {
+          // deal with duplicate label
+          exit(1);
+        }
+      }
       strcpy(cmdList[lineCount].label, label);
       strcpy(labelList[labelCount].label, label);
       labelList[labelCount].address = lineCount;
@@ -102,6 +108,7 @@ int main(int argc, char **argv) {
       }
     }
     if (!found) {
+      // deal with unrecognized opcode
       exit(1);
     }
 
