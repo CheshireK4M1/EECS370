@@ -146,6 +146,8 @@ int main(int argc, char **argv) {
             }
           }
           if (!labelFound) {
+            // deal with undefined label,
+            // and following identical code blocks are of the same use
             exit(1);
           }
         }
@@ -176,7 +178,7 @@ int main(int argc, char **argv) {
                 strcat(machineCodeOut, offsetField);
                 labelFound = true;
                 break;
-              } else {
+              } else { // normal offset calculation for lw and sw
                 toBinary(labelList[j].address, offsetField, 16);
                 strcat(machineCodeOut, offsetField);
                 labelFound = true;
