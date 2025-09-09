@@ -18,6 +18,7 @@ static inline int isNumber(char *);
 static inline void printHexToFile(FILE *, int);
 void toBinary(unsigned int, char *, int);
 bool checkInt(char *, char *);
+bool checkRegRange(char *);
 
 struct cmdInfo {
   char label[100];
@@ -81,6 +82,10 @@ int main(int argc, char **argv) {
     // check if the register arguments are valid numbers
     (checkInt(arg0, arg1)) ? (void)0 : exit(1);
 
+    // check if the first two reg values are within the range [0,7]
+    // arg2 could be a label, so we do not check it here
+    (checkRegRange(arg0) && checkRegRange(arg1)) ? (void)0 : exit(1);
+
     // check if there is a label. If so, take down its name and address
     if (label[0] != '\0') {
       for (int labelCheck = 0; labelCheck < labelCount; labelCheck++) {
@@ -138,24 +143,12 @@ int main(int argc, char **argv) {
         strcat(machineCodeOut, "0000000000000");
         // destReg
         if (isNumber(cmdList[lineNum].arg2)) {
+          // destReg value for add and nor must be within range [0,7]
+          (checkRegRange(cmdList[lineNum].arg2)) ? (void)0 : exit(1);
           toBinary(strtol(cmdList[lineNum].arg2, NULL, 10), buffer, 3);
           strcat(machineCodeOut, buffer);
         } else {
-          // find the address of the label
-          bool labelFound = false;
-          for (int j = 0; j < labelCount; j++) {
-            if (!strcmp(cmdList[lineNum].arg2, labelList[j].label)) {
-              toBinary(labelList[j].address, buffer, 3);
-              strcat(machineCodeOut, buffer);
-              labelFound = true;
-              break;
-            }
-          }
-          if (!labelFound) {
-            // deal with undefined label,
-            // and following identical code blocks are of the same use
-            exit(1);
-          }
+          exit(1);
         }
       } else if (opcodeIndex >= 2 && opcodeIndex <= 4) { // lw, sw, beq
         char offsetField[17];
@@ -393,6 +386,15 @@ bool checkInt(char *arg0_check, char *arg1_check) {
   if (*endptr_0 != '\0' || *endptr_1 != '\0') {
     // having the endptr pointing to char besides '\0' mean that
     // there are invalid char in the string
+    return false;
+  }
+  return true;
+}
+
+// check if the value of the reg arg is within range [0,7]
+bool checkRegRange(char *reg_check) {
+  int reg_value = strtol(reg_check, NULL, 10);
+  if (reg_value < 0 || reg_value > 7) {
     return false;
   }
   return true;
