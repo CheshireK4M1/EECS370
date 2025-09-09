@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
   // reading is done, now start processing
   for (int lineNum = 0; lineNum < lineCount; lineNum++) {
     int opcodeIndex = -1;
-    long decimal = 0;
+    long long decimal = 0;
     // determine the opcode for translation
     bool found = false;
     for (int j = 0; j < 9; j++) {
@@ -235,7 +235,12 @@ int main(int argc, char **argv) {
       printHexToFile(outFilePtr, finalOutput);
     } else { //.fill as a special case
       if (isNumber(cmdList[lineNum].arg0)) {
-        decimal = strtol(cmdList[lineNum].arg0, NULL, 10);
+        decimal = strtoll(cmdList[lineNum].arg0, NULL, 10);
+        // check if the decimal is out of 32bit range
+        if (decimal > 2147483647 || decimal < -2147483648) {
+          // printf("%s\n", "exceeding 32 bit range");
+          exit(1);
+        }
         unsigned long mask = 0xFFFFFFFF;
         finalOutput = (int)(decimal & mask);
         printHexToFile(outFilePtr, finalOutput);

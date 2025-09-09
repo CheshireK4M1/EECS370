@@ -6,5 +6,5 @@ start   add     1       2       1       decrement reg1
         noop
 done    halt    
 five    .fill   5
-neg1    .fill   -1
+neg1    .fill   2147483648
 stAddr  .fill   start                   will contain the address of start (2)

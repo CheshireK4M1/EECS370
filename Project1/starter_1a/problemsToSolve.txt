@@ -16,3 +16,4 @@ the errors are as follow listed
 // Non-int register arguments
 // Registers outside range [0,7]
 // no .fill before other instructions
+.fill value out of range of 32bit 2's complement
