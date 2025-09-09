@@ -90,14 +90,15 @@ int main(int argc, char **argv) {
     // if .fill has been encountered, all the following lines must be .fill
     if (fillEncountered) {
       (strcmp(cmdList[lineCount].opcode, ".fill") == 0) ? (void)0 : exit(1);
+      //(checkInt(arg0, arg0)) ? (void)0 : exit(1);
+    } else {
+      // check if the register arguments are valid numbers
+      (checkInt(arg0, arg1)) ? (void)0 : exit(1);
+
+      // check if the first two reg values are within the range [0,7]
+      // arg2 could be a label, so we do not check it here
+      (checkRegRange(arg0) && checkRegRange(arg1)) ? (void)0 : exit(1);
     }
-
-    // check if the register arguments are valid numbers
-    (checkInt(arg0, arg1)) ? (void)0 : exit(1);
-
-    // check if the first two reg values are within the range [0,7]
-    // arg2 could be a label, so we do not check it here
-    (checkRegRange(arg0) && checkRegRange(arg1)) ? (void)0 : exit(1);
 
     // check if there is a label. If so, take down its name and address
     if (label[0] != '\0') {
