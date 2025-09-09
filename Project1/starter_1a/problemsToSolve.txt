@@ -4,9 +4,9 @@ means the problems
 has been solved
 */
 
-//Use of undefined labels
-//Duplicate definition of labels
-offset out of 16 bit range
+// Use of undefined labels
+// Duplicate definition of labels
+// offset out of 16 bit range
 // Unrecognized opcode 
-Non-int register arguments
+// Non-int register arguments
 Registers outside range [0,7]

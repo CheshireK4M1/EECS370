@@ -17,6 +17,7 @@ static void checkForBlankLinesInCode(FILE *inFilePtr);
 static inline int isNumber(char *);
 static inline void printHexToFile(FILE *, int);
 void toBinary(unsigned int, char *, int);
+bool checkInt(char *, char *);
 
 struct cmdInfo {
   char label[100];
@@ -39,6 +40,7 @@ int main(int argc, char **argv) {
   struct cmdInfo cmdList[MAXLINELENGTH];
   struct labelInfo labelList[MAXLINELENGTH];
   char presentline[MAXLINELENGTH];
+
   int lineCount = 0, labelCount = 0;
   char *opcodes[] = {"add",  "nor",  "lw",   "sw",   "beq",
                      "jalr", "halt", "noop", ".fill"};
@@ -76,6 +78,9 @@ int main(int argc, char **argv) {
     strcpy(cmdList[lineCount].arg1, arg1);
     strcpy(cmdList[lineCount].arg2, arg2);
 
+    // check if the register arguments are valid numbers
+    (checkInt(arg0, arg1)) ? (void)0 : exit(1);
+
     // check if there is a label. If so, take down its name and address
     if (label[0] != '\0') {
       for (int labelCheck = 0; labelCheck < labelCount; labelCheck++) {
@@ -93,6 +98,7 @@ int main(int argc, char **argv) {
     }
     lineCount += 1;
   }
+  // note here float and double are still recorded identically as strings
 
   // reading is done, now start processing
   for (int lineNum = 0; lineNum < lineCount; lineNum++) {
@@ -361,6 +367,8 @@ static inline int isNumber(char *string) {
   before its firstfailure
   */
   return ((sscanf(string, "%d%c", &num, &c)) == 1);
+  // return value will be 1 if the string is a number
+  // and 0 if it have 0 or more than 1 successfully matched items
 }
 
 // Prints a machine code word in the proper hex format to the file
@@ -375,4 +383,17 @@ void toBinary(unsigned int value, char *buffer, int width) {
     buffer[width - 1 - i] = (value & (1u << i)) ? '1' : '0';
   }
   buffer[width] = '\0'; // null terminator
+}
+
+// check if a string is a valid int
+bool checkInt(char *arg0_check, char *arg1_check) {
+  char *endptr_0, *endptr_1;
+  strtol(arg0_check, &endptr_0, 10);
+  strtol(arg1_check, &endptr_1, 10);
+  if (*endptr_0 != '\0' || *endptr_1 != '\0') {
+    // having the endptr pointing to char besides '\0' mean that
+    // there are invalid char in the string
+    return false;
+  }
+  return true;
 }
