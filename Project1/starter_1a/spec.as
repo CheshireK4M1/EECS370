@@ -1,4 +1,5 @@
         lw      0       1       five    load reg1 with 5 (symbolic address)
+        .fill   6
         lw      1       2       3       load reg2 with -1 (numeric address)
 start   add     1       2       1       decrement reg1
         beq     0       1       2       goto end of program when reg1==0

@@ -9,4 +9,5 @@ has been solved
 // offset out of 16 bit range
 // Unrecognized opcode 
 // Non-int register arguments
- Registers outside range [0,7]
+// Registers outside range [0,7]
+no .fill before other instructions

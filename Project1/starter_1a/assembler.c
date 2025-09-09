@@ -71,13 +71,26 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
+  // this bool value is for checking if we have .fill opcode in the line
+  // if so, there should be only .fill opcode from then on
+  bool fillEncountered = false;
+
   // by here the file should be ok to read and process
   while (readAndParse(inFilePtr, label, opcode, arg0, arg1, arg2)) {
+
     // store the present assembly line into struct
     strcpy(cmdList[lineCount].opcode, opcode);
     strcpy(cmdList[lineCount].arg0, arg0);
     strcpy(cmdList[lineCount].arg1, arg1);
     strcpy(cmdList[lineCount].arg2, arg2);
+
+    // switch to true if .fill is encountered
+    (strcmp(cmdList[lineCount].opcode, ".fill") == 0) ? (fillEncountered = true)
+                                                      : (void)0;
+    // if .fill has been encountered, all the following lines must be .fill
+    if (fillEncountered) {
+      (strcmp(cmdList[lineCount].opcode, ".fill") == 0) ? (void)0 : exit(1);
+    }
 
     // check if the register arguments are valid numbers
     (checkInt(arg0, arg1)) ? (void)0 : exit(1);
