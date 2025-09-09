@@ -165,10 +165,14 @@ int main(int argc, char **argv) {
         // offsetField
         if (isNumber(cmdList[lineNum].arg2)) {
           int offset = strtol(cmdList[lineNum].arg2, NULL, 10);
+          // see if the offset is out of 16bit range
+          (offset > 32767 || offset < -32768) ? exit(1) : (void)0;
           toBinary(offset & 0xFFFF, offsetField, 16);
           strcat(machineCodeOut, offsetField);
         } else {
           // find the address of the label
+          // no need to check the range of address here because we always
+          // have less than 1000 lines
           bool labelFound = false;
           for (int j = 0; j < labelCount; j++) {
             if (!strcmp(cmdList[lineNum].arg2, labelList[j].label)) {
