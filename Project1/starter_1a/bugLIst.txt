@@ -1,4 +1,0 @@
-1. using undefined labels
-2. lw offset over upper bound of 16 bit
-3. .fill showing before the ending part arrives
-4. duplicate labels
