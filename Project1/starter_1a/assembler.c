@@ -244,13 +244,16 @@ int main(int argc, char **argv) {
           // if there is no label defined at all
           exit(1);
         } else {
-          for (unsigned int j = 0; j <= labelCount; j++) {
+          for (unsigned int j = 0; j < labelCount; j++) {
             if (!strcmp(cmdList[lineNum].arg0, labelList[j].label)) {
               presentMachineCode =
                   (uint32_t)(labelList[j].address & 0xFFFFFFFF);
               break;
             }
-            exit(1);
+            if (j == labelCount - 1) {
+              // if the label is not found in the label list
+              exit(1);
+            }
           }
         }
       }
