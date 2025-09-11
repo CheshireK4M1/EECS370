@@ -97,10 +97,19 @@ int main(int argc, char **argv) {
     //   // check if the register arguments are valid numbers
     //   (checkInt(arg0, arg1)) ? (void)0 : (fclose(inFilePtr), fclose(outFilePtr), exit(1));
 
-    //   // check if the first two reg values are within the range [0,7]
-    //   // arg2 could be a label, so we do not check it here
-    //   (checkRegRange(arg0) && checkRegRange(arg1)) ? (void)0 : (fclose(inFilePtr), fclose(outFilePtr), exit(1));
-    // }
+    if (strcmp(opcode, ".fill")) {
+      // check if the first two args are int
+      checkInt(arg0, arg1) ? (void)0 : exit(1);
+
+      // check if the first two reg values are within the range [0,7]
+      // arg2 could be a label, so we do not check it here
+      (checkRegRange(arg0) && checkRegRange(arg1)) ? (void)0 : exit(1);
+      // }
+    } else {
+      if (isNumber(arg0)) {
+        checkInt(arg0, arg0) ? (void)0 : exit(1);
+      }
+    }
 
     // check if there is a label. If so, take down its name and address
     if (label[0] != '\0') {
@@ -117,6 +126,8 @@ int main(int argc, char **argv) {
     } else {
       cmdList[lineCount].label[0] = '\0';
     }
+
+    // increment the line count by 1 for each line read
     lineCount += 1;
   }
   // note here float and double are still recorded identically as strings
@@ -142,51 +153,32 @@ int main(int argc, char **argv) {
     }
 
     // start translating to machine code
-    // char machineCodeOut[33] = "0000000";
-    // unsigned int machineCodeMask = 0b111;
-    // char buffer[4];
-    // int finalOutput = 0;
     if (opcodeIndex != 8) {
       if (opcodeIndex == 0 || opcodeIndex == 1) { // add and nor
-                                                  // opcode
-        // toBinary(opcodeIndex, buffer, 3);
-        // strcat(machineCodeOut, buffer);
+        // opcode
         presentMachineCode |= (opcodeIndex << 22);
         // reg1
-        // toBinary(strtol(cmdList[lineNum].arg0, NULL, 10), buffer, 3);
-        // strcat(machineCodeOut, buffer);
         presentMachineCode |=
             (uint32_t)(strtol(cmdList[lineNum].arg0, NULL, 10) << 19);
         // reg2
-        // toBinary(strtol(cmdList[lineNum].arg1, NULL, 10), buffer, 3);
-        // strcat(machineCodeOut, buffer);
         presentMachineCode |=
             (uint32_t)(strtol(cmdList[lineNum].arg1, NULL, 10) << 16);
-        // unused bits
-        // strcat(machineCodeOut, "0000000000000");
         // destReg
         if (isNumber(cmdList[lineNum].arg2)) {
           // destReg value for add and nor must be within range [0,7]
           (checkRegRange(cmdList[lineNum].arg2)) ? (void)0 : (exit(6));
           presentMachineCode |=
               (uint32_t)(strtol(cmdList[lineNum].arg2, NULL, 10) << 0);
-          // toBinary(strtol(cmdList[lineNum].arg2, NULL, 10), buffer, 3);
-          // strcat(machineCodeOut, buffer);
         } else {
           exit(7);
         }
       } else if (opcodeIndex >= 2 && opcodeIndex <= 4) { // lw, sw, beq
-        // char offsetField[17];
         // opcode
         presentMachineCode |= (opcodeIndex << 22);
         // reg1
-        // toBinary(strtol(cmdList[lineNum].arg0, NULL, 10), buffer, 3);
-        // strcat(machineCodeOut, buffer);
         presentMachineCode |=
             (uint32_t)(strtol(cmdList[lineNum].arg0, NULL, 10) << 19);
         // reg2
-        // toBinary(strtol(cmdList[lineNum].arg1, NULL, 10), buffer, 3);
-        // strcat(machineCodeOut, buffer);
         presentMachineCode |=
             (uint32_t)(strtol(cmdList[lineNum].arg1, NULL, 10) << 16);
         // offsetField
@@ -195,8 +187,6 @@ int main(int argc, char **argv) {
           // see if the offset is out of 16bit range
           (offset > 32767 || offset < -32768) ? (exit(8)) : (void)0;
           presentMachineCode |= (offset & 0xFFFF);
-          // toBinary(offset & 0xFFFF, offsetField, 16);
-          // strcat(machineCodeOut, offsetField);
         } else {
           // find the address of the label
           // no need to check the range of address here because we always
@@ -207,14 +197,11 @@ int main(int argc, char **argv) {
               if (opcodeIndex == 4) { // special offset calculation for beq
                 int offset = (int)(labelList[j].address - (lineNum + 1));
                 presentMachineCode |= (offset & 0xFFFF);
-                // toBinary(offset & 0xFFFF, offsetField, 16);
-                // strcat(machineCodeOut, offsetField);
                 labelFound = true;
                 break;
               } else { // normal offset calculation for lw and sw
                 presentMachineCode |= (labelList[j].address & 0xFFFF);
-                // toBinary(labelList[j].address, offsetField, 16);
-                // strcat(machineCodeOut, offsetField);
+                ;
                 labelFound = true;
                 break;
               }
@@ -226,33 +213,19 @@ int main(int argc, char **argv) {
         }
       } else if (opcodeIndex == 5) { // jalr
         // opcode
-        // toBinary(opcodeIndex, buffer, 3);
-        // strcat(machineCodeOut, buffer);
         presentMachineCode |= (opcodeIndex << 22);
         // reg1
-        // toBinary(strtol(cmdList[lineNum].arg0, NULL, 10), buffer, 3);
-        // strcat(machineCodeOut, buffer);
         presentMachineCode |=
             (uint32_t)(strtol(cmdList[lineNum].arg0, NULL, 10) << 19);
         // reg2
-        // toBinary(strtol(cmdList[lineNum].arg1, NULL, 10), buffer, 3);
-        // strcat(machineCodeOut, buffer);
         presentMachineCode |=
             (uint32_t)(strtol(cmdList[lineNum].arg1, NULL, 10) << 16);
-        // // unused bits
-        // strcat(machineCodeOut, "0000000000000000000");
       } else if (opcodeIndex == 6 || opcodeIndex == 7) { // halt and noop
         // opcode
         presentMachineCode |= (opcodeIndex << 22);
-        // unused bits
-        // strcat(machineCodeOut, "0000000000000000000000");
       } else {
         exit(10);
       }
-      // Actually it is not correct to convert variable type here
-      // Because there could be an overflow for int if the long value is too
-      // large finalOutput = (int)strtol(machineCodeOut, NULL, 2);
-      // printHexToFile(outFilePtr, finalOutput);
     } else { //.fill as a special case
       if (isNumber(cmdList[lineNum].arg0)) {
         // // check if the decimal is out of 32bit range
@@ -265,8 +238,6 @@ int main(int argc, char **argv) {
       } else {
         for (unsigned int j = 0; j < labelCount; j++) {
           if (!strcmp(cmdList[lineNum].arg0, labelList[j].label)) {
-            // finalOutput = (int)(labelList[j].address & 0xFFFFFFFF);
-            // printHexToFile(outFilePtr, finalOutput);
             presentMachineCode = (uint32_t)(labelList[j].address & 0xFFFFFFFF);
             break;
           }

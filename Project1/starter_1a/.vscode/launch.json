@@ -27,7 +27,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/assembler",
-            "args": ["spec.as", "spec.mc"],
+            "args": ["spec.as", "spec.out"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],
