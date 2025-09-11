@@ -17,7 +17,7 @@ static void checkForBlankLinesInCode(FILE *inFilePtr);
 static inline int isNumber(char *);
 static inline void printHexToFile(FILE *, int);
 void toBinary(long, char *, int);
-bool checkInt(char *, char *);
+bool checkInt(char *);
 bool checkRegRange(char *);
 static int lineIsBlank(char *line);
 
@@ -86,29 +86,33 @@ int main(int argc, char **argv) {
     strcpy(cmdList[lineCount].arg1, arg1);
     strcpy(cmdList[lineCount].arg2, arg2);
 
-    // // switch to true if .fill is encountered
-    // if (strcmp(cmdList[lineCount].opcode, ".fill") == 0) {
-    //   fillEncountered = true;
-    // }
-    // // if .fill has been encountered, all the following lines must be .fill
-    // if (fillEncountered) {
-    //   (strcmp(cmdList[lineCount].opcode, ".fill") == 0) ? (void)0 : exit(1);
-    // } else {
-    //   // check if the register arguments are valid numbers
-    //   (checkInt(arg0, arg1)) ? (void)0 : (fclose(inFilePtr), fclose(outFilePtr), exit(1));
-
-    if (strcmp(opcode, ".fill")) {
-      // check if the first two args are int
-      checkInt(arg0, arg1) ? (void)0 : exit(1);
-
-      // check if the first two reg values are within the range [0,7]
-      // arg2 could be a label, so we do not check it here
-      (checkRegRange(arg0) && checkRegRange(arg1)) ? (void)0 : exit(1);
-      // }
-    } else {
-      if (isNumber(arg0)) {
-        checkInt(arg0, arg0) ? (void)0 : exit(1);
+    // check args according to opcode
+    if (!strcmp(opcode, "add") || !strcmp(opcode, "nor")) {
+      // check arg0, arg1, arg2
+      if (isNumber(arg0) && isNumber(arg1) && isNumber(arg2)) {
+        (checkRegRange(arg0) && checkRegRange(arg1) && checkRegRange(arg2))
+            ? (void)0
+            : exit(1);
+      } else {
+        exit(1);
       }
+    } else if (!strcmp(opcode, "lw") || !strcmp(opcode, "sw") ||
+               (!strcmp(opcode, "beq"))) {
+      // check arg0, arg1
+      if (isNumber(arg0) && isNumber(arg1)) {
+        (checkRegRange(arg0) && checkRegRange(arg1)) ? (void)0 : exit(1);
+      } else {
+        exit(1);
+      }
+    } else if (!strcmp(opcode, "jalr")) {
+      // check arg0, arg1
+      if (isNumber(arg0) && isNumber(arg1)) {
+        (checkRegRange(arg0) && checkRegRange(arg1)) ? (void)0 : exit(1);
+      } else {
+        exit(1);
+      }
+      // no need to check for .fill
+      // it is checked later during translation
     }
 
     // check if there is a label. If so, take down its name and address
@@ -236,10 +240,17 @@ int main(int argc, char **argv) {
         // }
         presentMachineCode = (uint32_t)strtol(cmdList[lineNum].arg0, NULL, 10);
       } else {
-        for (unsigned int j = 0; j < labelCount; j++) {
-          if (!strcmp(cmdList[lineNum].arg0, labelList[j].label)) {
-            presentMachineCode = (uint32_t)(labelList[j].address & 0xFFFFFFFF);
-            break;
+        if (labelCount == 0) {
+          // if there is no label defined at all
+          exit(1);
+        } else {
+          for (unsigned int j = 0; j <= labelCount; j++) {
+            if (!strcmp(cmdList[lineNum].arg0, labelList[j].label)) {
+              presentMachineCode =
+                  (uint32_t)(labelList[j].address & 0xFFFFFFFF);
+              break;
+            }
+            exit(1);
           }
         }
       }
@@ -394,11 +405,10 @@ void toBinary(long value, char *buffer, int width) {
 }
 
 // check if a string is a valid int
-bool checkInt(char *arg0_check, char *arg1_check) {
-  char *endptr_0, *endptr_1;
-  strtol(arg0_check, &endptr_0, 10);
-  strtol(arg1_check, &endptr_1, 10);
-  if (*endptr_0 != '\0' || *endptr_1 != '\0') {
+bool checkInt(char *arg_check) {
+  char *endptr;
+  strtol(arg_check, &endptr, 10);
+  if (*endptr != '\0') {
     // having the endptr pointing to char besides '\0' mean that
     // there are invalid char in the string
     return false;
