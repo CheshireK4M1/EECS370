@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
   inFilePtr = fopen(inFileString, "r");
   if (inFilePtr == NULL) {
     printf("error in opening %s\n", inFileString);
-    exit(2);
+    exit(1);
   }
 
   // Check for blank lines in the middle of the code.
@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
   outFilePtr = fopen(outFileString, "w");
   if (outFilePtr == NULL) {
     printf("error in opening %s\n", outFileString);
-    exit(3);
+    exit(1);
   }
 
   // this bool value is for checking if we have .fill opcode in the line
@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
       for (unsigned int labelCheck = 0; labelCheck < labelCount; labelCheck++) {
         if (!strcmp(label, labelList[labelCheck].label)) {
           // deal with duplicate label
-          exit(4);
+          exit(1);
         }
       }
       strcpy(cmdList[lineCount].label, label);
@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
     }
     if (!found) {
       // deal with unrecognized opcode
-      exit(5);
+      exit(1);
     }
 
     // start translating to machine code
@@ -170,11 +170,11 @@ int main(int argc, char **argv) {
         // destReg
         if (isNumber(cmdList[lineNum].arg2)) {
           // destReg value for add and nor must be within range [0,7]
-          (checkRegRange(cmdList[lineNum].arg2)) ? (void)0 : (exit(6));
+          (checkRegRange(cmdList[lineNum].arg2)) ? (void)0 : (exit(1));
           presentMachineCode |=
               (uint32_t)(strtol(cmdList[lineNum].arg2, NULL, 10) << 0);
         } else {
-          exit(7);
+          exit(1);
         }
       } else if (opcodeIndex >= 2 && opcodeIndex <= 4) { // lw, sw, beq
         // opcode
@@ -189,7 +189,7 @@ int main(int argc, char **argv) {
         if (isNumber(cmdList[lineNum].arg2)) {
           long offset = strtol(cmdList[lineNum].arg2, NULL, 10);
           // see if the offset is out of 16bit range
-          (offset > 32767 || offset < -32768) ? (exit(8)) : (void)0;
+          (offset > 32767 || offset < -32768) ? (exit(1)) : (void)0;
           presentMachineCode |= (offset & 0xFFFF);
         } else {
           // find the address of the label
@@ -212,7 +212,7 @@ int main(int argc, char **argv) {
             }
           }
           if (!labelFound) {
-            exit(9);
+            exit(1);
           }
         }
       } else if (opcodeIndex == 5) { // jalr
@@ -228,7 +228,7 @@ int main(int argc, char **argv) {
         // opcode
         presentMachineCode |= (opcodeIndex << 22);
       } else {
-        exit(10);
+        exit(1);
       }
     } else { //.fill as a special case
       if (isNumber(cmdList[lineNum].arg0)) {
@@ -298,7 +298,7 @@ static void checkForBlankLinesInCode(FILE *inFilePtr) {
     // Check for line too long
     if (strlen(line) >= MAXLINELENGTH - 1) {
       printf("error: line too long\n");
-      exit(11);
+      exit(1);
     }
 
     // Check for blank line.
@@ -311,7 +311,7 @@ static void checkForBlankLinesInCode(FILE *inFilePtr) {
       if (blank_line_encountered) {
         printf("Invalid Assembly: Empty line at address %d\n",
                address_of_blank_line);
-        exit(12);
+        exit(2);
       }
     }
   }
@@ -351,7 +351,7 @@ int readAndParse(FILE *inFilePtr, char *label, char *opcode, char *arg0,
   /* check for line too long */
   if (strlen(line) == MAXLINELENGTH - 1) {
     printf("error: line too long\n");
-    exit(13);
+    exit(1);
   }
 
   // Ignore blank lines at the end of the file.
