@@ -5,7 +5,11 @@
 CXX = gcc
 
 # Compiler flags (including debug info)
-CXXFLAGS = -std=c99 -Wall -Werror -g3
+# CXXFLAGS = -std=c99 -Wall -Werror -g3
+CXXFLAGS = -std=c99 -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Wpointer-arith \
+         -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes \
+         -Wmissing-declarations -Wold-style-definition \
+         -Werror -g3
 LINKFLAGS = -lm
 # -std=c99 restricts us to using C and not C++
 # -lm links with libm, which includes math.h (maybe used in P4)

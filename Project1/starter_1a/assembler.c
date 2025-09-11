@@ -16,9 +16,10 @@ int readAndParse(FILE *, char *, char *, char *, char *, char *);
 static void checkForBlankLinesInCode(FILE *inFilePtr);
 static inline int isNumber(char *);
 static inline void printHexToFile(FILE *, int);
-void toBinary(unsigned int, char *, int);
+void toBinary(long, char *, int);
 bool checkInt(char *, char *);
 bool checkRegRange(char *);
+static int lineIsBlank(char *line);
 
 struct cmdInfo {
   char label[100];
@@ -30,7 +31,7 @@ struct cmdInfo {
 
 struct labelInfo {
   char label[100];
-  int address;
+  unsigned  address;
 };
 
 int main(int argc, char **argv) {
@@ -40,9 +41,8 @@ int main(int argc, char **argv) {
       arg1[MAXLINELENGTH], arg2[MAXLINELENGTH];
   struct cmdInfo cmdList[MAXLINELENGTH];
   struct labelInfo labelList[MAXLINELENGTH];
-  char presentline[MAXLINELENGTH];
 
-  int lineCount = 0, labelCount = 0;
+  unsigned int lineCount = 0, labelCount = 0;
   char *opcodes[] = {"add",  "nor",  "lw",   "sw",   "beq",
                      "jalr", "halt", "noop", ".fill"};
 
@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
   inFilePtr = fopen(inFileString, "r");
   if (inFilePtr == NULL) {
     printf("error in opening %s\n", inFileString);
-    exit(1);
+    exit(2);
   }
 
   // Check for blank lines in the middle of the code.
@@ -68,12 +68,12 @@ int main(int argc, char **argv) {
   outFilePtr = fopen(outFileString, "w");
   if (outFilePtr == NULL) {
     printf("error in opening %s\n", outFileString);
-    exit(1);
+    exit(3);
   }
 
   // this bool value is for checking if we have .fill opcode in the line
   // if so, there should be only .fill opcode from then on
-  bool fillEncountered = false;
+  // bool fillEncountered = false;
 
   // by here the file should be ok to read and process
   while (readAndParse(inFilePtr, label, opcode, arg0, arg1, arg2)) {
@@ -84,28 +84,28 @@ int main(int argc, char **argv) {
     strcpy(cmdList[lineCount].arg1, arg1);
     strcpy(cmdList[lineCount].arg2, arg2);
 
-    // switch to true if .fill is encountered
-    (strcmp(cmdList[lineCount].opcode, ".fill") == 0) ? (fillEncountered = true)
-                                                      : (void)0;
-    // if .fill has been encountered, all the following lines must be .fill
-    if (fillEncountered) {
-      (strcmp(cmdList[lineCount].opcode, ".fill") == 0) ? (void)0 : exit(1);
-      //(checkInt(arg0, arg0)) ? (void)0 : exit(1);
-    } else {
-      // check if the register arguments are valid numbers
-      (checkInt(arg0, arg1)) ? (void)0 : exit(1);
+    // // switch to true if .fill is encountered
+    // if (strcmp(cmdList[lineCount].opcode, ".fill") == 0) {
+    //   fillEncountered = true;
+    // }
+    // // if .fill has been encountered, all the following lines must be .fill
+    // if (fillEncountered) {
+    //   (strcmp(cmdList[lineCount].opcode, ".fill") == 0) ? (void)0 : exit(1);
+    // } else {
+    //   // check if the register arguments are valid numbers
+    //   (checkInt(arg0, arg1)) ? (void)0 : (fclose(inFilePtr), fclose(outFilePtr), exit(1));
 
-      // check if the first two reg values are within the range [0,7]
-      // arg2 could be a label, so we do not check it here
-      (checkRegRange(arg0) && checkRegRange(arg1)) ? (void)0 : exit(1);
-    }
+    //   // check if the first two reg values are within the range [0,7]
+    //   // arg2 could be a label, so we do not check it here
+    //   (checkRegRange(arg0) && checkRegRange(arg1)) ? (void)0 : (fclose(inFilePtr), fclose(outFilePtr), exit(1));
+    // }
 
     // check if there is a label. If so, take down its name and address
     if (label[0] != '\0') {
-      for (int labelCheck = 0; labelCheck < labelCount; labelCheck++) {
+      for (unsigned int labelCheck = 0; labelCheck < labelCount; labelCheck++) {
         if (!strcmp(label, labelList[labelCheck].label)) {
           // deal with duplicate label
-          exit(1);
+          exit(4);
         }
       }
       strcpy(cmdList[lineCount].label, label);
@@ -120,8 +120,8 @@ int main(int argc, char **argv) {
   // note here float and double are still recorded identically as strings
 
   // reading is done, now start processing
-  for (int lineNum = 0; lineNum < lineCount; lineNum++) {
-    int opcodeIndex = -1;
+  for (unsigned int lineNum = 0; lineNum < lineCount; lineNum++) {
+    long opcodeIndex = -1;
     long long decimal = 0;
     // determine the opcode for translation
     bool found = false;
@@ -134,12 +134,12 @@ int main(int argc, char **argv) {
     }
     if (!found) {
       // deal with unrecognized opcode
-      exit(1);
+      exit(5);
     }
 
-    // start translating to machine code
-    char machineCodeOut[32] = "0000000";
-    unsigned int machineCodeMask = 0b111;
+  //   // start translating to machine code
+    char machineCodeOut[33] = "0000000";
+    // unsigned int machineCodeMask = 0b111;
     char buffer[4];
     int finalOutput = 0;
     if (opcodeIndex != 8) {
@@ -158,13 +158,14 @@ int main(int argc, char **argv) {
         // destReg
         if (isNumber(cmdList[lineNum].arg2)) {
           // destReg value for add and nor must be within range [0,7]
-          (checkRegRange(cmdList[lineNum].arg2)) ? (void)0 : exit(1);
+          (checkRegRange(cmdList[lineNum].arg2)) ? (void)0 : (exit(6));
           toBinary(strtol(cmdList[lineNum].arg2, NULL, 10), buffer, 3);
           strcat(machineCodeOut, buffer);
         } else {
-          exit(1);
+          exit(7);
         }
-      } else if (opcodeIndex >= 2 && opcodeIndex <= 4) { // lw, sw, beq
+      }
+      else if (opcodeIndex >= 2 && opcodeIndex <= 4) { // lw, sw, beq
         char offsetField[17];
         // opcode
         toBinary(opcodeIndex, buffer, 3);
@@ -177,9 +178,9 @@ int main(int argc, char **argv) {
         strcat(machineCodeOut, buffer);
         // offsetField
         if (isNumber(cmdList[lineNum].arg2)) {
-          int offset = strtol(cmdList[lineNum].arg2, NULL, 10);
+          long offset = strtol(cmdList[lineNum].arg2, NULL, 10);
           // see if the offset is out of 16bit range
-          (offset > 32767 || offset < -32768) ? exit(1) : (void)0;
+          (offset > 32767 || offset < -32768) ? (exit(8)) : (void)0;
           toBinary(offset & 0xFFFF, offsetField, 16);
           strcat(machineCodeOut, offsetField);
         } else {
@@ -187,10 +188,10 @@ int main(int argc, char **argv) {
           // no need to check the range of address here because we always
           // have less than 1000 lines
           bool labelFound = false;
-          for (int j = 0; j < labelCount; j++) {
+          for (unsigned int j = 0; j < labelCount; j++) {
             if (!strcmp(cmdList[lineNum].arg2, labelList[j].label)) {
               if (opcodeIndex == 4) { // special offset calculation for beq
-                int offset = labelList[j].address - (lineNum + 1);
+                int offset = (int)(labelList[j].address - (lineNum + 1));
                 toBinary(offset & 0xFFFF, offsetField, 16);
                 strcat(machineCodeOut, offsetField);
                 labelFound = true;
@@ -204,7 +205,7 @@ int main(int argc, char **argv) {
             }
           }
           if (!labelFound) {
-            exit(1);
+            exit(9);
           }
         }
       } else if (opcodeIndex == 5) { // jalr
@@ -226,26 +227,26 @@ int main(int argc, char **argv) {
         // unused bits
         strcat(machineCodeOut, "0000000000000000000000");
       } else {
-        exit(1);
+        exit(10);
       }
       // Actually it is not correct to convert variable type here
-      // Because there could be an overflow for int if the long value is too
-      // large
-      finalOutput = strtol(machineCodeOut, NULL, 2);
+      // Because there could be an overflow for int if the long value is too large
+      finalOutput = (int)strtol(machineCodeOut, NULL, 2);
       printHexToFile(outFilePtr, finalOutput);
     } else { //.fill as a special case
       if (isNumber(cmdList[lineNum].arg0)) {
         decimal = strtoll(cmdList[lineNum].arg0, NULL, 10);
-        // check if the decimal is out of 32bit range
-        if (decimal > 2147483647 || decimal < -2147483648) {
-          // printf("%s\n", "exceeding 32 bit range");
-          exit(1);
-        }
-        unsigned long mask = 0xFFFFFFFF;
+        // // check if the decimal is out of 32bit range
+        // if (decimal > 2147483647 || decimal < -2147483648) {
+        //   fclose(inFilePtr);
+        //   fclose(outFilePtr);
+        //   exit(1);
+        // }
+        long long mask = 0xFFFFFFFF;
         finalOutput = (int)(decimal & mask);
         printHexToFile(outFilePtr, finalOutput);
       } else {
-        for (int j = 0; j < labelCount; j++) {
+        for (unsigned int j = 0; j < labelCount; j++) {
           if (!strcmp(cmdList[lineNum].arg0, labelList[j].label)) {
             finalOutput = (int)(labelList[j].address & 0xFFFFFFFF);
             printHexToFile(outFilePtr, finalOutput);
@@ -253,7 +254,7 @@ int main(int argc, char **argv) {
           }
         }
       }
-    }
+      }
   }
   return (0);
 }
@@ -262,9 +263,9 @@ int main(int argc, char **argv) {
 static int lineIsBlank(char *line) {
   char whitespace[4] = {'\t', '\n', '\r', ' '};
   int nonempty_line = 0;
-  for (int line_idx = 0; line_idx < strlen(line); ++line_idx) {
+  for (unsigned int line_idx = 0; line_idx < strlen(line); ++line_idx) {
     int line_char_is_whitespace = 0;
-    for (int whitespace_idx = 0; whitespace_idx < 4; ++whitespace_idx) {
+    for (unsigned int whitespace_idx = 0; whitespace_idx < 4; ++whitespace_idx) {
       if (line[line_idx] == whitespace[whitespace_idx]) {
         line_char_is_whitespace = 1;
         break;
@@ -291,7 +292,7 @@ static void checkForBlankLinesInCode(FILE *inFilePtr) {
     // Check for line too long
     if (strlen(line) >= MAXLINELENGTH - 1) {
       printf("error: line too long\n");
-      exit(1);
+      exit(11);
     }
 
     // Check for blank line.
@@ -304,7 +305,7 @@ static void checkForBlankLinesInCode(FILE *inFilePtr) {
       if (blank_line_encountered) {
         printf("Invalid Assembly: Empty line at address %d\n",
                address_of_blank_line);
-        exit(2);
+        exit(12);
       }
     }
   }
@@ -344,7 +345,7 @@ int readAndParse(FILE *inFilePtr, char *label, char *opcode, char *arg0,
   /* check for line too long */
   if (strlen(line) == MAXLINELENGTH - 1) {
     printf("error: line too long\n");
-    exit(1);
+    exit(13);
   }
 
   // Ignore blank lines at the end of the file.
@@ -390,7 +391,7 @@ static inline void printHexToFile(FILE *outFilePtr, int word) {
 
 // below are self-defined functions
 // convert an int into a bit string
-void toBinary(unsigned int value, char *buffer, int width) {
+void toBinary(long value, char *buffer, int width) {
   for (int i = width - 1; i >= 0; i--) {
     buffer[width - 1 - i] = (value & (1u << i)) ? '1' : '0';
   }
@@ -412,7 +413,7 @@ bool checkInt(char *arg0_check, char *arg1_check) {
 
 // check if the value of the reg arg is within range [0,7]
 bool checkRegRange(char *reg_check) {
-  int reg_value = strtol(reg_check, NULL, 10);
+  long reg_value = strtol(reg_check, NULL, 10);
   if (reg_value < 0 || reg_value > 7) {
     return false;
   }
