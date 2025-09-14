@@ -3,7 +3,7 @@
         "type": "cppbuild",
         "label": "C/C++: make simulator",
         "command": "/usr/bin/make",
-        "args": ["assembler"],
+        "args": ["simulator"],
         "options": {
             "cwd": "${workspaceFolder}"
         },

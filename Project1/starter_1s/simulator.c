@@ -23,6 +23,10 @@
 #define MAXLINELENGTH                                                          \
   1000 /* MAXLINELENGTH is the max number of characters we read */
 #define MAXLINENUM 100 /* MAXLINENUM is the max number of lines we read */
+// below are the masking number applicable to aal 8 instructions
+#define OPCODEMASK 0x01C00000
+#define REGAMASK 0x00380000
+#define REGBMASK 0x00070000
 
 typedef struct stateStruct {
   int pc;
@@ -50,7 +54,7 @@ static inline int convertNum(int32_t);
 int main(int argc, char **argv) {
   char line[MAXLINELENGTH] = {0};
   stateType state = {0};
-  assemblyLine assembly[MAXLINENUM] = {0};
+  assemblyLine assembly = {0};
   FILE *filePtr;
 
   if (argc != 2) {
@@ -79,6 +83,21 @@ int main(int argc, char **argv) {
       exit(2);
     }
     printf("mem[ %d ] 0x%08X\n", state.numMemory, state.mem[state.numMemory]);
+  }
+
+  // execute the instructions line by line
+  for (int memLine = 0; memLine < state.numMemory; memLine++) {
+    // reading opcode, regA, regB
+    assembly.opcode = (state.mem[memLine] & OPCODEMASK) >> 22;
+    assembly.regA = (state.mem[memLine] & REGAMASK) >> 19;
+    assembly.regB = (state.mem[memLine] & REGBMASK) >> 16;
+    if (assembly.opcode == 0 || assembly.opcode == 1) {
+      // R-type instruction (add, nor)
+      assembly.destReg = state.mem[memLine] & 0x00000007;
+    } else if (assembly.opcode >= 2 && assembly.opcode <= 4) {
+      // I-type instruction (lw, sw, beq)
+      assembly.offset = convertNum(state.mem[memLine] & 0x0000FFFF);
+    } // no special value to extract for jalr, halt and noop
   }
 
   // Your code ends here!
