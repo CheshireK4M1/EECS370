@@ -1,0 +1,45 @@
+//     // macOS .json setting
+// {
+//     "version": "0.2.0",
+//     "configurations": [
+//         {
+//             "type": "lldb",
+//             "request": "launch",
+//             "name": "Debug P1_a",
+//             "program": "${workspaceFolder}/assembler", // 编译输出的可执行文件
+//             "args": [
+//                 "${workspaceFolder}/spec.as",
+//                 "${workspaceFolder}/spec.out",
+//             ],
+//             "cwd": "${workspaceFolder}",
+//             "preLaunchTask": "C/C++: make assembler", // 启动调试前运行编译任务
+//             "preRunCommands": ["breakpoint set --name main"], // 在 main 函数处设置断点
+//         }
+//     ]
+// }
+
+// Linux launch.json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Project 1s",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/simulator",
+            "args": ["spec.mc"],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+		"setupCommands": [{
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            }],
+            "preLaunchTask": "C/C++: make simulator"
+        }
+    ]
+}

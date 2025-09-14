@@ -1,0 +1,21 @@
+This file lists the masking value for different instructions.
+
+//add and nor
+opcode: 0x01C00000
+regA:   0x00380000
+regB:   0x00070000
+destReg:0x00000007
+
+//lw sw and beq
+opcode: 0x01C00000
+regA:   0x00380000
+regB:   0x00070000
+offset: 0x0000FFFF
+
+//jalr
+opcode: 0x01C00000
+regA:   0x00380000
+regB:   0x00070000
+
+//halt and noop
+opcode: 0x01C00000
