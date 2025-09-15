@@ -114,7 +114,18 @@ int main(int argc, char **argv) {
       // I-type instruction (lw, sw, beq)
       assembly.offset = convertNum(state.mem[thisLine] & 0x0000FFFF);
       if (assembly.opcode == 2) {
-        // lw
+        // lw loads regB with the value at memory address (regA + offset)
+        state.reg[assembly.regB] =
+            state.mem[state.reg[assembly.regA] + assembly.offset];
+      } else if (assembly.opcode == 3) {
+        // sw stores the value in regB to memory address (regA + offset)
+        state.mem[state.reg[assembly.regA] + assembly.offset] =
+            state.reg[assembly.regB];
+      } else if (assembly.opcode == 4) {
+        // beq branches to (pc+1+offset) if regA and regB have the same value
+        (state.reg[assembly.regA] == state.reg[assembly.regB])
+            ? (state.pc = state.pc + 1 + assembly.offset)
+            : (state.pc += 1);
       }
     }
     // no special value to extract for jalr, halt and noop
