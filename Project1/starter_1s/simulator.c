@@ -89,6 +89,9 @@ int main(int argc, char **argv) {
   // initialize pc before execution
   state.pc = 0;
 
+  // print initial state
+  printState(&state);
+
   // execute the instructions line by line
   while (running) {
     int thisLine = state.pc; // current line in memory being executed
@@ -117,13 +120,18 @@ int main(int argc, char **argv) {
         // lw loads regB with the value at memory address (regA + offset)
         state.reg[assembly.regB] =
             state.mem[state.reg[assembly.regA] + assembly.offset];
+
+        state.pc += 1;
       } else if (assembly.opcode == 3) {
         // sw stores the value in regB to memory address (regA + offset)
         state.mem[state.reg[assembly.regA] + assembly.offset] =
             state.reg[assembly.regB];
+
+        state.pc += 1;
       } else if (assembly.opcode == 4) {
         // beq branches to (pc+1+offset) if regA and regB have the same value
         (state.reg[assembly.regA] == state.reg[assembly.regB])
+            // print state before changing pc
             ? (state.pc = state.pc + 1 + assembly.offset)
             : (state.pc += 1);
       }
@@ -133,8 +141,12 @@ int main(int argc, char **argv) {
       state.pc = state.reg[assembly.regA];
     } else if (assembly.opcode == 6) {
       // halt, which ends the simulation
-      state.pc += 1;
+      // printStats(&state);
       running = false;
+      state.pc += 1;
+      // breaking from the while loop, so increment pc here as special case
+      state.numInstructionsExecuted += 1;
+      break;
     } else if (assembly.opcode == 7) {
       // noop
       state.pc += 1;
@@ -145,9 +157,13 @@ int main(int argc, char **argv) {
     printState(&state);
   }
 
+  // print the final state for end
+  if (running == false) {
+    printStats(&state);
+    printState(&state);
+  }
+
   // Your code ends here!
-  printf("%s", "printing done\n");
-  // remove the line above before submitting
   return (0);
 }
 
