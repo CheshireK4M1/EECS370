@@ -127,12 +127,26 @@ int main(int argc, char **argv) {
             ? (state.pc = state.pc + 1 + assembly.offset)
             : (state.pc += 1);
       }
+    } else if (assembly.opcode == 5) {
+      // jalr
+      state.reg[assembly.regB] = state.pc + 1;
+      state.pc = state.reg[assembly.regA];
+    } else if (assembly.opcode == 6) {
+      // halt, which ends the simulation
+      state.pc += 1;
+      running = false;
+    } else if (assembly.opcode == 7) {
+      // noop
+      state.pc += 1;
     }
-    // no special value to extract for jalr, halt and noop
+    // execution is done, do some regular tasks
+    state.numInstructionsExecuted += 1;
+    state.reg[0] = 0; // ensure reg[0] is always 0
   }
 
   // Your code ends here!
   printf("%s", "printing done\n");
+  // remove the line above before submitting
   return (0);
 }
 
