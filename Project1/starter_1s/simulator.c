@@ -52,6 +52,7 @@ void printStats(stateType *);
 static inline int convertNum(int32_t);
 
 int main(int argc, char **argv) {
+  bool running = true; // to determine when to halt the simulator
   char line[MAXLINELENGTH] = {0};
   stateType state = {0};
   assemblyLine assembly = {0};
@@ -85,19 +86,38 @@ int main(int argc, char **argv) {
     printf("mem[ %d ] 0x%08X\n", state.numMemory, state.mem[state.numMemory]);
   }
 
+  // initialize pc before execution
+  state.pc = 0;
+
   // execute the instructions line by line
-  for (int memLine = 0; memLine < state.numMemory; memLine++) {
+  while (running) {
+    int thisLine = state.pc; // current line in memory being executed
     // reading opcode, regA, regB
-    assembly.opcode = (state.mem[memLine] & OPCODEMASK) >> 22;
-    assembly.regA = (state.mem[memLine] & REGAMASK) >> 19;
-    assembly.regB = (state.mem[memLine] & REGBMASK) >> 16;
+    assembly.opcode = (state.mem[thisLine] & OPCODEMASK) >> 22;
+    assembly.regA = (state.mem[thisLine] & REGAMASK) >> 19;
+    assembly.regB = (state.mem[thisLine] & REGBMASK) >> 16;
     if (assembly.opcode == 0 || assembly.opcode == 1) {
       // R-type instruction (add, nor)
-      assembly.destReg = state.mem[memLine] & 0x00000007;
+      assembly.destReg = state.mem[thisLine] & 0x00000007;
+      if (assembly.opcode == 0) {
+        // add
+        state.reg[assembly.destReg] =
+            state.reg[assembly.regA] + state.reg[assembly.regB];
+      } else if (assembly.opcode == 1) {
+        // nor
+        state.reg[assembly.destReg] =
+            ~(state.reg[assembly.regA] | state.reg[assembly.regB]);
+      }
+      // increment pc by 1 after executing R-type instruction
+      state.pc += 1;
     } else if (assembly.opcode >= 2 && assembly.opcode <= 4) {
       // I-type instruction (lw, sw, beq)
-      assembly.offset = convertNum(state.mem[memLine] & 0x0000FFFF);
-    } // no special value to extract for jalr, halt and noop
+      assembly.offset = convertNum(state.mem[thisLine] & 0x0000FFFF);
+      if (assembly.opcode == 2) {
+        // lw
+      }
+    }
+    // no special value to extract for jalr, halt and noop
   }
 
   // Your code ends here!
@@ -126,6 +146,7 @@ void printState(stateType *statePtr) {
 
 // convert a 16-bit number into a 32-bit Linux integer
 static inline int convertNum(int num) {
+  // subtract 2^16 from the present value to represent a negative number
   return num - ((num & (1 << 15)) ? 1 << 16 : 0);
 }
 
