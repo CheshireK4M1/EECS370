@@ -142,6 +142,7 @@ int main(int argc, char **argv) {
     // execution is done, do some regular tasks
     state.numInstructionsExecuted += 1;
     state.reg[0] = 0; // ensure reg[0] is always 0
+    printState(&state);
   }
 
   // Your code ends here!
@@ -154,6 +155,8 @@ int main(int argc, char **argv) {
  * DO NOT MODIFY ANY OF THE CODE BELOW.
  */
 
+// \t for horizontal tab
+// \n for new line
 void printState(stateType *statePtr) {
   int i;
   printf("\n@@@\nstate:\n");
