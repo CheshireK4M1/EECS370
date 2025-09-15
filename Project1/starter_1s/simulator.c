@@ -94,6 +94,7 @@ int main(int argc, char **argv) {
 
   // execute the instructions line by line
   while (running) {
+    state.reg[0] = 0; // ensure reg[0] is always 0 when executing a new line
     int thisLine = state.pc; // current line in memory being executed
     // reading opcode, regA, regB
     assembly.opcode = (state.mem[thisLine] & OPCODEMASK) >> 22;
@@ -153,7 +154,6 @@ int main(int argc, char **argv) {
     }
     // execution is done, do some regular tasks
     state.numInstructionsExecuted += 1;
-    state.reg[0] = 0; // ensure reg[0] is always 0
     printState(&state);
   }
 
