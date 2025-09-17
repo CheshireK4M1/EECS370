@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/cheshirekawa11/Desktop/Github_Code/EECS370/Project1/starter_1a/assembler.exe'
+relocations:     []
+...

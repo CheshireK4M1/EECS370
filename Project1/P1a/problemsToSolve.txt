@@ -1,0 +1,28 @@
+/*
+the symbol // 
+means the problems 
+has been solved
+*/
+
+/*
+the serial number of 
+the errors are as follow listed
+*/
+
+// Use of undefined labels
+// Duplicate definition of labels
+// offset out of 16 bit range
+// Unrecognized opcode 
+// Non-int register arguments
+// Registers outside range [0,7]
+// no .fill before other instructions
+// .fill value out of range of 32bit 2's complement
+
+/*
+below are some probable errors and bugs in the code
+// means that it is considered, verified as a problem and solved
+/./means that it is considered and proved to be unrelated
+*/
+
+args of jalr being non-int
+/./ comments after halt and noop being recorded as args
