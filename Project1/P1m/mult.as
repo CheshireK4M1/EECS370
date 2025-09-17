@@ -1,8 +1,7 @@
 	lw	0	1	mcand
 	lw	0	2	mplier
-	add	0	1	3	reg3 as return value. Initialize
-	lw	0	4	1	masking bit to be left shifted
-	lw	0	5	15	counter for left shifting
+	lw	0	4	one	masking bit to be left shifted
+	lw	0	5	ffzehn	counter for left shifting
 loop	nor	4	4	4	now reg4 is 0xFFFFFFFE, or say 1
 	nor	2	2	6	reg6 is the negation of mplier
 	nor	4	6	7	reg7 now has LSB of mcand
@@ -16,6 +15,8 @@ shift	add	1	1	1	shift the mcand left by 1 bit
 	beq	0	5	end	stop running and return the value if counting ends
 	beq	0	0	loop
 end	halt
-mcand 	.fill	6203		
-mplier	.fill	1429		
+mcand 	.fill	3		
+mplier	.fill	5	
+one	.fill	1	
+ffzehn	.fill	15
 neg1	.fill	-1
